@@ -24,14 +24,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier
 
-"""# Monter Google Drive"""
+# """# Monter Google Drive"""
 
-from google.colab import drive
-drive.mount('/content/drive')
+# from google.colab import drive
+# drive.mount('/content/drive')
 
 """# Charger les données"""
 
-file_path = "/content/drive/MyDrive/Colab Notebooks/First/Copie de DatasetmalwareExtrait.csv"
+file_path = "/workspaces/decisionTreeEvaluation/Copie de DatasetmalwareExtrait.csv"
 data = pd.read_csv(file_path, sep=",")
 X = data.drop(columns=["legitimate"])
 y = data["legitimate"]
