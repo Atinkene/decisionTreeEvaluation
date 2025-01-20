@@ -12,6 +12,7 @@ Original file is located at
 # !pip install pandas joblib scikit-learn
 # !pip install optuna
 import os
+import streamlit as st
 import numpy as np
 import pandas as pd
 import joblib
@@ -24,11 +25,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier
 
-# """# Monter Google Drive"""
-
-# from google.colab import drive
-# drive.mount('/content/drive')
-
 """# Charger les données"""
 
 file_path = "./Copie de DatasetmalwareExtrait.csv"
@@ -39,8 +35,8 @@ y = data["legitimate"]
 """# Division des données en données d'entraînement et de test"""
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-print("Entraînement :", X_train.shape)
-print("Test :", X_test.shape)
+st.write("Entraînement :", X_train.shape)
+st.write("Test :", X_test.shape)
 
 """# Modèle Decision Tree"""
 
@@ -48,7 +44,7 @@ dt_model = DecisionTreeClassifier()
 dt_model.fit(X_train, y_train)
 dt_predictions = dt_model.predict(X_test)
 dt_accuracy = accuracy_score(y_test, dt_predictions)
-print(f"Précision du modèle Decision Tree : {dt_accuracy:.2f}")
+st.write(f"Précision du modèle Decision Tree : {dt_accuracy:.2f}")
 joblib.dump(dt_model, 'dt_model.py')
 
 """# Modèle SVM"""
@@ -57,7 +53,7 @@ svm_model = SVC()
 svm_model.fit(X_train, y_train)
 svm_predictions = svm_model.predict(X_test)
 svm_accuracy = accuracy_score(y_test, svm_predictions)
-print(f"Précision du modèle SVM : {svm_accuracy:.2f}")
+st.write(f"Précision du modèle SVM : {svm_accuracy:.2f}")
 joblib.dump(svm_model, 'svm_model.py')
 
 """# Modèle K-Neighbors"""
@@ -66,15 +62,15 @@ knn_model = KNeighborsClassifier(n_neighbors=5)
 knn_model.fit(X_train, y_train)
 knn_predictions = knn_model.predict(X_test)
 knn_accuracy = accuracy_score(y_test, knn_predictions)
-print(f"Précision du modèle K-Neighbors : {knn_accuracy:.2f}")
+st.write(f"Précision du modèle K-Neighbors : {knn_accuracy:.2f}")
 joblib.dump(knn_model, 'knn_model.py')
 
 """# Résumé des performances"""
 
-print("\nRésumé des performances des modèles :")
-print(f"Précision de l'Arbre de Décision : {dt_accuracy:.2f}")
-print(f"Précision du SVM : {svm_accuracy:.2f}")
-print(f"Précision des K-Neighbors : {knn_accuracy:.2f}")
+st.write("\nRésumé des performances des modèles :")
+st.write(f"Précision de l'Arbre de Décision : {dt_accuracy:.2f}")
+st.write(f"Précision du SVM : {svm_accuracy:.2f}")
+st.write(f"Précision des K-Neighbors : {knn_accuracy:.2f}")
 
 """# Hyperparamètres avec Optuna"""
 
@@ -95,8 +91,8 @@ def objectif(essai):
 
 etude = optuna.create_study(direction='maximize')
 etude.optimize(objectif, n_trials=50)
-print(f"Meilleurs hyperparamètres Optuna : {etude.best_params}")
-print(f"Meilleur score : {etude.best_value:.2f}")
+st.write(f"Meilleurs hyperparamètres Optuna : {etude.best_params}")
+st.write(f"Meilleur score : {etude.best_value:.2f}")
 
 """# Random Forest initial et optimisation"""
 
@@ -139,9 +135,9 @@ results = pd.DataFrame({
     'With Optimization': [precision_optimized, recall_optimized, f1_optimized]
 })
 
-print("Comparaison des métriques :\n", results)
-print("\nMatrice de confusion sans optimisation :\n", conf_matrix_initial)
-print("\nMatrice de confusion avec optimisation :\n", conf_matrix_optimized)
+st.write("Comparaison des métriques :\n", results)
+st.write("\nMatrice de confusion sans optimisation :\n", conf_matrix_initial)
+st.write("\nMatrice de confusion avec optimisation :\n", conf_matrix_optimized)
 
 """# Optimisation avec Optuna pour RandomForest"""
 
@@ -163,4 +159,4 @@ def objective(trial):
 study = optuna.create_study(direction='maximize')
 study.optimize(objective, n_trials=20)
 
-print("\nMeilleurs hyperparamètres avec Optuna :\n", study.best_params)
+st.write("\nMeilleurs hyperparamètres avec Optuna :\n", study.best_params)
