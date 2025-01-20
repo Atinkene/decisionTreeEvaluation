@@ -9,8 +9,8 @@ Original file is located at
 # Importer les bibliothèques nécessaires
 """
 
-!pip install pandas joblib scikit-learn
-!pip install optuna
+# !pip install pandas joblib scikit-learn
+# !pip install optuna
 import os
 import numpy as np
 import pandas as pd
