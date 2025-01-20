@@ -31,7 +31,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 """# Charger les données"""
 
-file_path = "/workspaces/decisionTreeEvaluation/Copie de DatasetmalwareExtrait.csv"
+file_path = "./Copie de DatasetmalwareExtrait.csv"
 data = pd.read_csv(file_path, sep=",")
 X = data.drop(columns=["legitimate"])
 y = data["legitimate"]
