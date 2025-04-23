@@ -26,10 +26,8 @@ from sklearn.ensemble import RandomForestClassifier
 # Fonction pour extraire les caractéristiques d'un fichier exécutable
 def extraire_caracteristiques_pe(contenu_fichier):
     try:
-        # Charger le fichier PE à partir des octets
         pe = pefile.PE(data=contenu_fichier)
         
-        # Définir les caractéristiques à extraire (basées sur l'analyse de malwares)
         caracteristiques = {
             'Machine': pe.FILE_HEADER.Machine,
             'TailleEnTeteOptionnel': pe.FILE_HEADER.SizeOfOptionalHeader,
@@ -58,12 +56,10 @@ def extraire_caracteristiques_pe(contenu_fichier):
             'NbSections': len(pe.sections),
         }
         
-        # Ajouter des caractéristiques spécifiques aux sections (taille, entropie)
         for i, section in enumerate(pe.sections[:3]):  # Limiter aux 3 premières sections
             caracteristiques[f'Section{i+1}_Taille'] = section.SizeOfRawData
             caracteristiques[f'Section{i+1}_Entropie'] = section.get_entropy()
         
-        # Convertir en DataFrame
         return pd.DataFrame([caracteristiques])
     except Exception as e:
         st.error(f"Erreur lors de l'extraction des caractéristiques : {str(e)}")
@@ -79,33 +75,27 @@ if uploaded_file is not None:
     extension_fichier = uploaded_file.name.split('.')[-1].lower()
     
     if extension_fichier == 'csv':
-        # --- Téléchargement CSV : Entraînement des modèles ---
         st.subheader("Entraînement des Modèles sur un Jeu de Données CSV")
         try:
             donnees = pd.read_csv(uploaded_file)
             st.write(f"Jeu de données chargé avec succès ! Dimensions : {donnees.shape}")
 
-            # Vérifier la présence de la colonne 'legitimate'
             if "legitimate" not in donnees.columns:
                 st.error("Le jeu de données doit contenir une colonne 'legitimate' pour la variable cible.")
             else:
-                # Préparer les caractéristiques et la cible
                 X = donnees.drop(columns=["legitimate"])
                 y = donnees["legitimate"]
 
-                # Diviser les données
                 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
                 st.write(f"Dimensions de l'ensemble d'entraînement : {X_train.shape}")
                 st.write(f"Dimensions de l'ensemble de test : {X_test.shape}")
 
-                # Standardiser les caractéristiques
                 normaliseur = StandardScaler()
                 X_train_normalise = normaliseur.fit_transform(X_train)
                 X_test_normalise = normaliseur.transform(X_test)
                 joblib.dump(normaliseur, 'normaliseur.pkl')  # Sauvegarder le normaliseur
 
-                # --- Arbre de Décision ---
-                st.subheader("Arbre de Décision")
+                st.subheader("Decision Tree")
                 modele_dt = DecisionTreeClassifier()
                 modele_dt.fit(X_train, y_train)
                 predictions_dt = modele_dt.predict(X_test)
@@ -113,7 +103,6 @@ if uploaded_file is not None:
                 st.write(f"Précision : {precision_dt:.2f}")
                 joblib.dump(modele_dt, 'modele_dt.pkl')
 
-                # --- SVM ---
                 st.subheader("Machine à Vecteurs de Support (SVM)")
                 modele_svm = SVC()
                 modele_svm.fit(X_train_normalise, y_train)
@@ -122,8 +111,7 @@ if uploaded_file is not None:
                 st.write(f"Précision : {precision_svm:.2f}")
                 joblib.dump(modele_svm, 'modele_svm.pkl')
 
-                # --- K-Voisins ---
-                st.subheader("K-Voisins")
+                st.subheader("K-Neighbors")
                 modele_knn = KNeighborsClassifier(n_neighbors=5)
                 modele_knn.fit(X_train_normalise, y_train)
                 predictions_knn = modele_knn.predict(X_test_normalise)
@@ -131,7 +119,6 @@ if uploaded_file is not None:
                 st.write(f"Précision : {precision_knn:.2f}")
                 joblib.dump(modele_knn, 'modele_knn.pkl')
 
-                # --- Forêt Aléatoire ---
                 st.subheader("Forêt Aléatoire")
                 modele_rf = RandomForestClassifier(random_state=42)
                 modele_rf.fit(X_train, y_train)
@@ -140,8 +127,7 @@ if uploaded_file is not None:
                 st.write(f"Précision : {precision_rf:.2f}")
                 joblib.dump(modele_rf, 'modele_rf.pkl')
 
-                # --- Optimisation des hyperparamètres avec Optuna (Arbre de Décision) ---
-                st.subheader("Optimisation Optuna (Arbre de Décision)")
+                st.subheader("Optimisation Optuna (Decision Tree)")
                 def objectif(trial):
                     profondeur_max = trial.suggest_int('profondeur_max', 10, 50)
                     division_min = trial.suggest_int('division_min', 2, 20)
@@ -160,7 +146,6 @@ if uploaded_file is not None:
                 st.write(f"Meilleurs hyperparamètres : {etude.best_params}")
                 st.write(f"Meilleur score : {etude.best_value:.2f}")
 
-                # --- Optimisation Forêt Aléatoire ---
                 st.subheader("Optimisation Forêt Aléatoire")
                 param_dist = {
                     'max_depth': [10, 20, 30, None],
@@ -184,18 +169,14 @@ if uploaded_file is not None:
             st.error(f"Erreur lors du traitement du fichier CSV : {str(e)}")
 
     elif extension_fichier in ['exe', 'dll']:
-        # --- Téléchargement Exécutable : Prédiction de Malware ---
         st.subheader("Prédiction de Malware à partir d'un Exécutable")
         try:
-            # Lire le contenu du fichier
             contenu_fichier = uploaded_file.read()
             
-            # Extraire les caractéristiques
             df_caracteristiques = extraire_caracteristiques_pe(contenu_fichier)
             if df_caracteristiques is None:
                 raise ValueError("Échec de l'extraction des caractéristiques.")
 
-            # Charger les modèles pré-entraînés et le normaliseur
             try:
                 modele_dt = joblib.load('modele_dt.pkl')
                 modele_svm = joblib.load('modele_svm.pkl')
@@ -206,13 +187,11 @@ if uploaded_file is not None:
                 st.error("Modèles pré-entraînés ou normaliseur introuvables. Veuillez d'abord entraîner les modèles avec un fichier CSV.")
                 st.stop()
 
-            # Aligner les caractéristiques avec les données d'entraînement
             try:
                 colonnes_attendues = modele_dt.feature_names_in_  # Suppose que les modèles stockent les noms des caractéristiques
                 colonnes_manquantes = [col for col in colonnes_attendues if col not in df_caracteristiques.columns]
                 colonnes_excedentes = [col for col in df_caracteristiques.columns if col not in colonnes_attendues]
 
-                # Gérer les colonnes manquantes ou excédentaires
                 for col in colonnes_manquantes:
                     df_caracteristiques[col] = 0  # Remplir les colonnes manquantes avec des zéros
                 df_caracteristiques = df_caracteristiques[colonnes_attendues]  # Réorganiser selon les colonnes attendues
@@ -220,20 +199,17 @@ if uploaded_file is not None:
                 st.error("Les modèles ne contiennent pas les noms des caractéristiques. Veuillez vérifier la compatibilité des caractéristiques.")
                 st.stop()
 
-            # Normaliser les caractéristiques pour SVM et KNN
             caracteristiques_normalisees = normaliseur.transform(df_caracteristiques)
 
-            # Effectuer les prédictions
             pred_dt = modele_dt.predict(df_caracteristiques)[0]
             pred_svm = modele_svm.predict(caracteristiques_normalisees)[0]
             pred_knn = modele_knn.predict(caracteristiques_normalisees)[0]
             pred_rf = modele_rf.predict(df_caracteristiques)[0]
 
-            # Afficher les résultats
             st.write("Résultats des Prédictions :")
-            st.write(f"Arbre de Décision : {'Malware' if pred_dt == 0 else 'Légitime'}")
+            st.write(f"Decision Tree : {'Malware' if pred_dt == 0 else 'Légitime'}")
             st.write(f"SVM : {'Malware' if pred_svm == 0 else 'Légitime'}")
-            st.write(f"K-Voisins : {'Malware' if pred_knn == 0 else 'Légitime'}")
+            st.write(f"K-Neighbors : {'Malware' if pred_knn == 0 else 'Légitime'}")
             st.write(f"Forêt Aléatoire : {'Malware' if pred_rf == 0 else 'Légitime'}")
 
         except Exception as e:
