@@ -119,7 +119,7 @@ if uploaded_file is not None:
                 st.write(f"Précision : {precision_knn:.2f}")
                 joblib.dump(modele_knn, 'modele_knn.pkl')
 
-                st.subheader("Forêt Aléatoire")
+                st.subheader("Random Forest")
                 modele_rf = RandomForestClassifier(random_state=42)
                 modele_rf.fit(X_train, y_train)
                 predictions_rf = modele_rf.predict(X_test)
@@ -146,7 +146,7 @@ if uploaded_file is not None:
                 st.write(f"Meilleurs hyperparamètres : {etude.best_params}")
                 st.write(f"Meilleur score : {etude.best_value:.2f}")
 
-                st.subheader("Optimisation Forêt Aléatoire")
+                st.subheader("Optimisation Random Forest")
                 param_dist = {
                     'max_depth': [10, 20, 30, None],
                     'min_samples_split': [2, 5, 10],
@@ -210,7 +210,7 @@ if uploaded_file is not None:
             st.write(f"Decision Tree : {'Malware' if pred_dt == 0 else 'Légitime'}")
             st.write(f"SVM : {'Malware' if pred_svm == 0 else 'Légitime'}")
             st.write(f"K-Neighbors : {'Malware' if pred_knn == 0 else 'Légitime'}")
-            st.write(f"Forêt Aléatoire : {'Malware' if pred_rf == 0 else 'Légitime'}")
+            st.write(f"Random Forest : {'Malware' if pred_rf == 0 else 'Légitime'}")
 
         except Exception as e:
             st.error(f"Erreur lors du traitement de l'exécutable : {str(e)}")
