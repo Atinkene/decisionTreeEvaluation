@@ -5,7 +5,7 @@ Application Streamlit pour entraîner des modèles sur un jeu de données CSV ou
 """
 
 # Installation des bibliothèques nécessaires (uniquement pour Colab ou environnements similaires)
-!pip install pandas joblib scikit-learn streamlit optuna pefile
+# !pip install pandas joblib scikit-learn streamlit optuna pefile
 
 # Importation des bibliothèques
 import streamlit as st
